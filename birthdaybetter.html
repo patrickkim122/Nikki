@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(90deg, #ff0000, #ffff00);
+        margin: 0;
+        overflow: hidden;
+        animation: backgroundChange 2s infinite;
+    }
+    canvas {
+        border: 2px solid #000;
+        background-image: url('NikkiZoom2.png');
+        background-size: cover;
+        background-position: center;
+    }
+    @keyframes backgroundChange {
+        0%, 100% { background: linear-gradient(90deg, #ff0000, #ffff00); }
+        12.5% { background: linear-gradient(90deg, #ff007f, #ff00ff); }
+        25% { background: linear-gradient(90deg, #4b0082, #8a2be2); }
+        37.5% { background: linear-gradient(90deg, #00ffff, #00ff00); }
+        50% { background: linear-gradient(90deg, #ff4500, #ffa500); }
+        62.5% { background: linear-gradient(90deg, #00ff00, #7fff00); }
+        75% { background: linear-gradient(90deg, #1e90ff, #6495ed); }
+        87.5% { background: linear-gradient(90deg, #ff69b4, #ffc0cb); }
+    }
+</style>
+</head>
+<body>
+<canvas id="birthdayCanvas" width="800" height="600"></canvas>
+<audio id="birthdayAudio" src="birthday-song.mp3" autoplay loop></audio>
+<script>
+const canvas = document.getElementById('birthdayCanvas');
+const ctx = canvas.getContext('2d');
+
+const text = 'Happy Birthday!';
+let textX = canvas.width;
+let textY = canvas.height / 2;
+
+const confettiCount = 100;
+const confettis = [];
+const balloons = [];
+const emojiImages = [];
+const imageSources = ['LanaDelRey.png', 'Barbie.png', 'Gojo.png', 'Kou.png', 'Beach.png', 'Footy.png'];
+
+for (let src of imageSources) {
+    const img = new Image();
+    img.src = src;
+    emojiImages.push(img);
+}
+
+for (let i = 0; i < confettiCount; i++) {
+    confettis.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 6 + 2,
+        dx: Math.random() * 2 - 1,
+        dy: Math.random() * 2 + 1,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+    });
+}
+
+for (let i = 0; i < 10; i++) {
+    balloons.push({
+        x: Math.random() * canvas.width,
+        y: canvas.height + Math.random() * canvas.height,
+        r: 20 + Math.random() * 30,
+        dy: 1 + Math.random() * 3,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+    });
+}
+
+const animateConfetti = () => {
+    for (let confetti of confettis) {
+        ctx.beginPath();
+        ctx.arc(confetti.x, confetti.y, confetti.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = confetti.color;
+        ctx.fill();
+        confetti.x += confetti.dx;
+        confetti.y += confetti.dy;
+        if (confetti.y > canvas.height) confetti.y = 0;
+        if (confetti.x > canvas.width) confetti.x = 0;
+        if (confetti.x < 0) confetti.x = canvas.width;
+    }
+};
+
+const animateBalloons = () => {
+    for (let balloon of balloons) {
+        ctx.beginPath();
+        ctx.arc(balloon.x, balloon.y, balloon.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = balloon.color;
+        ctx.fill();
+        balloon.y -= balloon.dy;
+        if (balloon.y + balloon.r < 0) {
+            balloon.y = canvas.height + Math.random() * canvas.height;
+        }
+    }
+};
+
+const animateImages = () => {
+    for (let img of emojiImages) {
+        ctx.drawImage(img, Math.random() * canvas.width, Math.random() * canvas.height, 40, 40);
+    }
+};
+
+const animateText = () => {
+    ctx.font = '50px Arial';
+    ctx.fillStyle = '#ff69b4';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, textX, textY);
+
+    textX -= 2;
+    if (textX < -ctx.measureText(text).width) {
+        textX = canvas.width;
+    }
+};
+
+const fireworks = [];
+
+const createFirework = () => {
+    const x = Math.random() * canvas.width;
+    const y = canvas.height;
+    const radius = Math.random() * 3 + 2;
+    const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    fireworks.push({ x, y, radius, color, dy: -3, particles: [] });
+
+    for (let i = 0; i < 50; i++) {
+        fireworks[fireworks.length - 1].particles.push({
+            x,
+            y,
+            radius: Math.random() * 3,
+            color,
+            dx: Math.random() * 4 - 2,
+            dy: Math.random() * 4 - 2
+        });
+    }
+};
+
+const animateFireworks = () => {
+    for (let i = fireworks.length - 1; i >= 0; i--) {
+        const firework = fireworks[i];
+        firework.y += firework.dy;
+        if (firework.y < canvas.height / 2) {
+            fireworks.splice(i, 1);
+            continue;
+        }
+        ctx.beginPath();
+        ctx.arc(firework.x, firework.y, firework.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = firework.color;
+        ctx.fill();
+
+        for (let j = firework.particles.length - 1; j >= 0; j--) {
+            const particle = firework.particles[j];
+            particle.x += particle.dx;
+            particle.y += particle.dy;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2, false);
+            ctx.fillStyle = particle.color;
+            ctx.fill();
+        }
+    }
+};
+
+const animate = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    animateConfetti();
+    animateBalloons();
+    animateImages();
+    animateText();
+    animateFireworks();
+    requestAnimationFrame(animate);
+};
+
+setInterval(createFirework, 1000);
+
+animate();
+</script>
+</body>
+</html>
